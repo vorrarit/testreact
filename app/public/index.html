@@ -1,0 +1,131 @@
+<html>
+<head>
+<title></title>
+<script type="text/javascript" src="http://localhost:35729/livereload.js"></script>
+<link rel="stylesheet" href="css/bootstrap.css"	>
+<script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/bootstrap.js"></script>
+<script type="text/javascript" src="js/react.js"></script>
+<script type="text/javascript" src="js/react-dom.js"></script>
+</head>
+
+<body>
+
+<div id="app">
+Hello World
+</div>
+
+<script type="text/javascript">
+	var logMixin = {
+	componentWillUpdate: function() {
+		console.log(this.name + '::componentWillUpdate', arguments);
+	},
+	componentDidUpdate: function() {
+		console.log(this.name + '::componentDidUpdate', arguments);
+	},
+	componentWillMount: function() {
+		console.log(this.name + '::componentWillMount', arguments);
+	},
+	componentDidMount: function() {
+		console.log(this.name + '::componentDidMount', arguments);
+	},
+	componentWillUnmount: function() {
+		console.log(this.name + '::componentWillUnmount', arguments);
+	}
+};
+
+var MyComponent = React.createClass({
+	propTypes: {
+		name: React.PropTypes.string.isRequired
+	},
+	getDefaultProps: function() {
+		return {
+			name: 'Bogus'
+		};
+	},
+	render: function() {
+		return React.DOM.span(null, 'I\'m so custom ' + this.props.name);
+	}
+});
+
+var Counter = React.createClass({
+	name: 'Counter',
+	mixins: [ logMixin ],
+	propTypes: {
+		count: React.PropTypes.number
+	},
+	getDefaultProps: function() {
+		return {
+			count: 0
+		}
+	},
+	getInitialState: function() {
+		return {
+			count: this.props.count
+		}
+	},
+	render: function() {
+		console.log(this.name + '::render()');
+		return React.DOM.h3(null, this.props.count)
+	},
+	shouldComponentUpdate: function(nextProps, nextState) {
+		return (this.props.count !== nextProps.count);
+	}
+});
+
+var TextAreaCounter = React.createClass({
+	name: 'TextAreaCounter',
+	mixins: [ logMixin ],
+	propTypes: {
+		text: React.PropTypes.string.isRequired
+	},
+	getDefaultProps: function() {
+		return {
+			text: 'Bogus'
+		}
+	},
+	getInitialState: function() {
+		return {
+			text: this.props.text
+		};
+	},
+	render: function() {
+		console.log(this.name + '::render()');
+		var counter = null;
+		if (this.state.text.length > 0) {
+			counter = React.createElement(Counter, {
+				count: this.state.text.length
+			});
+		}
+		return React.DOM.div(null,
+			React.DOM.textarea({
+				value: this.state.text,
+				onChange: this._textChange
+			}),
+			counter
+		);
+	},
+	_textChange: function(e) {
+		this.setState({
+			text: e.target.value
+		});
+	},
+
+});
+
+var myReact = ReactDOM.render(
+	React.DOM.h1({
+			id: 'my-heading'
+		},
+		'Hello World!',
+		React.DOM.br(),
+		React.createElement(TextAreaCounter, {
+			text: 'Vorrarit'
+		})
+	),
+	document.getElementById('app')
+);
+</script>
+
+</body>
+</html>
