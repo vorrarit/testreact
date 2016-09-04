@@ -15,8 +15,12 @@
 Hello World
 </div>
 
+<style type="text/css">
+table { width: 80%; margin: 20px; }
+td { border-top: solid 1px black; }
+</style>
 <script type="text/javascript">
-	var logMixin = {
+var logMixin = {
 	componentWillUpdate: function() {
 		console.log(this.name + '::componentWillUpdate', arguments);
 	},
@@ -113,16 +117,110 @@ var TextAreaCounter = React.createClass({
 
 });
 
+var headers = [
+	'Book', 'Author', 'Lanaguage', 'Published', 'Sales'
+];
+
+var data = [
+	[ 'aaa', 'aaa', 'aaa', 'aaa', 'aaa' ],
+	[ 'bbb', 'bbb', 'bbb', 'bbb', 'bbb' ],
+	[ 'ccc', 'ccc', 'ccc', 'ccc', 'ccc' ],
+	[ 'ddd', 'ddd', 'ddd', 'ddd', 'ddd' ],
+	[ 'eee', 'eee', 'eee', 'eee', 'eee' ],
+];
+
+var Excel = React.createClass({
+	displayName: 'Excel',
+	propTypes: {
+		headers: React.PropTypes.arrayOf(React.PropTypes.string).isRequired,
+		initialData: React.PropTypes.arrayOf(React.PropTypes.arrayOf(React.PropTypes.string)).isRequired
+	},
+	getInitialState: function() {
+		return {
+			headers: this.props.headers,
+			data: this.props.initialData,
+			sortColumn: null,
+			sortAscending: true,
+			edit: null
+		}
+	},
+	render: function() {
+		var self = this;
+		return (
+			React.DOM.table(null,
+				React.DOM.thead({ onClick: this._sort },
+					React.DOM.tr(null,
+						this.state.headers.map(function (title, idx) {
+							if (self.state.sortColumn === idx) {
+								title += (self.state.sortAscending? '\u2191': '\u2193');
+							}
+							return React.DOM.th({ key: idx }, title);
+						})
+					)
+				),
+				React.DOM.tbody({ onDoubleClick: this._showEditor },
+					this.state.data.map(function (row, rowIdx) {
+						return React.DOM.tr({ key: rowIdx },
+							row.map(function(cell, idx) {
+								var content = cell;
+								if (self.state.edit && self.state.edit.row == rowIdx && self.state.edit.cell == idx) {
+									content = React.DOM.form({ onSubmit: self._save },
+										React.DOM.input({ type: 'text', defaultValue: content })
+									);
+								}
+								return React.DOM.td({ key: idx, 'data-row': rowIdx }, content);
+							})
+						);
+					})
+				)
+			)
+		)
+	},
+	_sort: function(e) {
+		var sortColumn = e.target.cellIndex;
+		var sortAscending = (this.state.sortColumn == sortColumn? !this.state.sortAscending: true);
+
+		var data = this.state.data.slice();
+		data.sort(function(a, b) {
+			console.log(a[sortColumn] + ', ' + b[sortColumn]);
+			return (sortAscending?
+				(a[sortColumn] < b[sortColumn]? 1: -1):
+				(a[sortColumn] < b[sortColumn]? -1: 1)
+			);
+		});
+
+		this.setState({
+			data: data,
+			sortColumn: sortColumn,
+			sortAscending: sortAscending
+		});
+	},
+	_showEditor: function(e) {
+		this.setState({
+			edit: {
+				row: parseInt(e.target.dataset.row, 10),
+				cell: e.target.cellIndex
+			}
+		});
+	},
+	_save: function(e) {
+		var input = e.target.firstChild;
+		var data = this.state.data.slice();
+		data[this.state.edit.row][this.state.edit.cell] = input.value;
+		this.setState({
+			data: data,
+			edit: null
+		});
+		// return false;
+		e.preventDefault();
+	}
+});
+
 var myReact = ReactDOM.render(
-	React.DOM.h1({
-			id: 'my-heading'
-		},
-		'Hello World!',
-		React.DOM.br(),
-		React.createElement(TextAreaCounter, {
-			text: 'Vorrarit'
-		})
-	),
+	React.createElement(Excel, {
+		headers: headers,
+		initialData: data
+	}),
 	document.getElementById('app')
 );
 </script>

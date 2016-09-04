@@ -3,3 +3,4 @@ node_modules
 app/public/css
 app/public/fonts
 app/public/js
+lib
